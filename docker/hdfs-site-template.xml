@@ -1,0 +1,22 @@
+<configuration>
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+    </property>
+    <property>
+        <name>dfs.webhdfs.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>dfs.datanode.address</name>
+        <value>HOSTNAME:50010</value>
+    </property>
+    <property>
+        <name>dfs.datanode.http.address</name>
+        <value>HOSTNAME:50075</value>
+    </property>
+    <property>
+        <name>dfs.datanode.ipc.address</name>
+        <value>HOSTNAME:50020</value>
+    </property>
+</configuration>

@@ -1,0 +1,6 @@
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://boot2docker:9000</value>
+    </property>
+</configuration>
