@@ -5,8 +5,6 @@ import urllib2
 
 import arcpy
 
-
-
 #
 # WebHDFS class inspired from https://github.com/drelu/webhdfs-py - Thanks
 #
@@ -60,7 +58,7 @@ class WebHDFSTool(object):
             name="out_fc",
             displayName="out_fc",
             direction="Output",
-            datatype="DEFeatureClass",
+            datatype="Feature Layer",
             parameterType="Derived")
 
         paramName = arcpy.Parameter(
@@ -85,6 +83,7 @@ class WebHDFSTool(object):
     def execute(self, parameters, messages):
         name = parameters[1].value
 
+        # Use scratchGDB if need to be published as a GeoProcessing Service in ArcGIS Server.
         # fc = os.path.join(arcpy.env.scratchGDB, name)
         # ws = os.path.dirname(fc)
 
