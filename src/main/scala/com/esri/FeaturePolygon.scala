@@ -3,19 +3,41 @@ package com.esri
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, KryoSerializable}
 import com.vividsolutions.jts.geom.prep.{PreparedGeometry, PreparedGeometryFactory}
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, LinearRing, Polygon}
+import com.vividsolutions.jts.geom.{Geometry, _}
+import org.geotools.geometry.jts.GeometryClipper
+import spire.implicits._
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   */
 case class FeaturePolygon(var geom: Geometry, var attr: Array[String]) extends Feature with KryoSerializable {
-  override def toRowCols(cellSize: Double): Seq[(RowCol, Feature)] = {
+
+  def this() = this(null, null)
+
+  override def toRowCols(cellSize: Double): Seq[(RowCol, FeaturePolygon)] = {
     val envelope = geom.getEnvelopeInternal
     val cmin = (envelope.getMinX / cellSize).floor.toInt
     val cmax = (envelope.getMaxX / cellSize).floor.toInt
     val rmin = (envelope.getMinY / cellSize).floor.toInt
     val rmax = (envelope.getMaxY / cellSize).floor.toInt
-    for (r <- rmin to rmax; c <- cmin to cmax)
-      yield (RowCol(r, c), this)
+
+    val arr = new ArrayBuffer[(RowCol, FeaturePolygon)]()
+
+    cfor(rmin)(_ <= rmax, _ + 1)(r => {
+      cfor(cmin)(_ <= cmax, _ + 1)(c => {
+        val x1 = c * cellSize
+        val y1 = r * cellSize
+        val cellEnvp = new Envelope(x1, x1 + cellSize, y1, y1 + cellSize)
+        val clipper = new GeometryClipper(cellEnvp)
+        val clip = clipper.clip(geom, false)
+        if (clip != null && !clip.isEmpty) {
+          arr += RowCol(r, c) -> FeaturePolygon(clip, attr)
+        }
+      })
+    })
+
+    arr
   }
 
   @transient
@@ -23,6 +45,7 @@ case class FeaturePolygon(var geom: Geometry, var attr: Array[String]) extends F
 
   def prepare(preparedGeometryFactory: PreparedGeometryFactory) = {
     preparedGeometry = preparedGeometryFactory.create(geom)
+    this
   }
 
   def contains(other: Geometry) = {

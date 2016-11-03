@@ -31,7 +31,6 @@ The delimited characters can be defined at execution time.
 
 The build process uses [Maven](https://maven.apache.org/)
 
-
 ```shell
 mvn package
 ```

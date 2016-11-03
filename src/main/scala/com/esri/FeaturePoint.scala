@@ -7,7 +7,10 @@ import com.vividsolutions.jts.geom.Geometry
 /**
   */
 case class FeaturePoint(var geom: Geometry, var attr: Array[String]) extends Feature with KryoSerializable {
-  override def toRowCols(cellSize: Double): Seq[(RowCol, Feature)] = {
+
+  def this() = this(null, null)
+
+  override def toRowCols(cellSize: Double): Seq[(RowCol, FeaturePoint)] = {
     val coordinate = geom.getCoordinate
     val c = (coordinate.x / cellSize).floor.toInt
     val r = (coordinate.y / cellSize).floor.toInt
