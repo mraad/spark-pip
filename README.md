@@ -155,6 +155,7 @@ docker run\
 Put the supporting data in HDFS:
 
 ```
+hdfs dfsadmin -safemode wait
 unzip -p /spark-pip/data/world.tsv.zip | hdfs dfs -put - /world/world.tsv
 unzip -p /spark-pip/data/points.tsv.zip | hdfs dfs -put - /points/points.tsv
 ```
