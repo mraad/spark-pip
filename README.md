@@ -1,6 +1,6 @@
 # Spark Point In Polygon
 
-[Spark](http://spark.apache.org/) job to perform massive feature Point in Polygon (PiP) operations on a distributed share-nothing cluster.
+[Spark](http://spark.apache.org/) job to perform massive Point in Polygon (PiP) operations on a distributed share-nothing cluster.
 
 In this job context, a feature is defined to have a geometry and a set of attributes. The geometry can be
 a point, a polygon or a multi-polygon, and an attribute is a string encoded value. 
@@ -24,13 +24,13 @@ And here is polygon feature sample:
 0|EC02|ECU-AZU|Azuay|EC|ECU|Ecuador|555881|Province|Provincia|8788.83|3393.37|1|0|MULTIPOLYGON (((-79.373981904060528 -3.3344269140348786, ...
 ```
 
-Note that in the above sample, the point fields are separated by a comma, where the polygon fields are separated by a pipe `|`.
+Note that in the above sample, the geometry point fields are separated by a comma, where the feature fields are separated by a pipe `|`.
 The delimited characters can be defined at execution time.
 
 __Update: Nov 4, 2016__
 
 - JDK 8 is a requirement.
-- Updated the map phase where, rather than sending to the reducer the whole geometry for each grid cell key, now the _clipped_ geometry for a cell is sent to the reducer phase.  This reduced the memory consumption and network bandwidth to transfer larger geometries.
+- Updated the map phase where, rather than sending to the reducer the whole geometry for each grid cell key, now the _clipped_ geometry for a cell is sent to the reducer phase.  This reduced memory consumption and network bandwidth in transferring smaller geometries.
 - Updated Docker content to Spark 1.6.2 and JDK 8 to accommodate the clip function in `org.geotools:gt-main:15.2`.
 
 ## Building the Project
@@ -71,13 +71,13 @@ The file can also include [Spark configuration properties](http://spark.apache.o
  
 ## Implementation details
  
-Because the data can be massive, it cannot fit in memory all at once to perform the PiP operation and to, for example, create
+The data can be massive and cannot fit in memory all at once to perform the PiP operations and to create
 a spatial index of all the polygons for quick lookup. So...you will have to segment the input data and operate on 
 each segment individually.  And since these segments share nothing, they can be processed in parallel.
 So, in the geospatial domain, segmentation takes the form of subdividing the area of interest into smaller rectangular areas.
-Rectangles are "nice" because of their straight edges. You can, for example, quickly find out if a point is inside or outside of it,
-and complex shapes can be subdivided into coarse edge matching rectangles. It is that last fact that we will use to segment the input
-points and polygons in such that that we can perform a massive PiP per segment.
+Rectangles are "nice" as you can quickly find out if a point is inside or outside of it,
+and polygonal shapes can be subdivided into coarse edge matching rectangles. It is that last fact that we will use to segment the input
+points and polygons, in such that that we can perform a massive PiP per segment.
 
 Take for example the below points and polygons in an area of interest.
 
