@@ -97,11 +97,12 @@ object MainApp extends App with Logging {
         val preparedGeometryFactory = new PreparedGeometryFactory()
         iter.flatMap {
           case (_, (points, polygons)) => {
+            // Prepare the polygon for fast PiP
             val polygonArr = polygons
-              .map(polygon => {
-                polygon.prepare(preparedGeometryFactory)
-              })
+              .map(_.prepare(preparedGeometryFactory))
               .toArray
+            // Cartesian product between the points and polygons.
+            // Finding the points in the explict polygon shape, and appending the attributes if truly inside.
             points
               .flatMap(point => {
                 polygonArr
