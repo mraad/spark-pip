@@ -1,4 +1,13 @@
 <configuration>
+    <!-- http://stackoverflow.com/questions/29512565/spark-pi-example-in-cluster-mode-with-yarn-association-lost -->
+    <property>
+        <name>yarn.nodemanager.pmem-check-enabled</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.vmem-check-enabled</name>
+        <value>false</value>
+    </property>
     <property>
         <name>yarn.resourcemanager.scheduler.address</name>
         <value>HOSTNAME:8030</value>

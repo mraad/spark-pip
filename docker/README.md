@@ -1,4 +1,4 @@
-# Apache YARN/HDFS 2.7.1, Spark 2.4.1 Docker Image
+# Apache YARN/HDFS 2.7.1, Spark 1.6.2 Docker Image, JDK 1.8
 
 Docker image to bootstrap HDFS and YARN as a pseudo cluster to enable the execution of a Spark Job in a yarn client
 mode where the driver runs in the client process, and the application master is only used for requesting resources from YARN.
@@ -61,12 +61,16 @@ In the host web browser, open
 spark-shell\
  --master yarn-client\
  --driver-memory 1g\
- --executor-memory 1g\
- --executor-cores 1
+ --executor-memory 2g\
+ --executor-cores 2
 ```
 
 Execute the following command which should return 1000:
 
 ```
-scala> sc.parallelize(1 to 1000).count()
+sc.parallelize(1 to 1000).count()
 ```
+
+### References
+
+- <http://stackoverflow.com/questions/29512565/spark-pi-example-in-cluster-mode-with-yarn-association-lost>

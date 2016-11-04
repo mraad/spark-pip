@@ -14,16 +14,17 @@ sed s/HOSTNAME/$HOSTNAME/g /usr/local/hadoop/etc/hadoop/core-site-template.xml >
 sed s/HOSTNAME/$HOSTNAME/g /usr/local/hadoop/etc/hadoop/hdfs-site-template.xml > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
 sed s/HOSTNAME/$HOSTNAME/g /usr/local/hadoop/etc/hadoop/yarn-site-template.xml > /usr/local/hadoop/etc/hadoop/yarn-site.xml
 
-echo spark.yarn.jar hdfs:///spark/spark-assembly-1.4.1-hadoop2.6.0.jar > $SPARK_HOME/conf/spark-defaults.conf
+echo spark.yarn.jar hdfs:///spark/spark-assembly-1.6.2-hadoop2.6.0.jar > $SPARK_HOME/conf/spark-defaults.conf
 
 service sshd start
 $HADOOP_PREFIX/sbin/start-dfs.sh
 $HADOOP_PREFIX/sbin/start-yarn.sh
 
-if [[ $1 == "-d" ]]; then
-  while true; do sleep 1000; done
-fi
-
-if [[ $1 == "-bash" ]]; then
-  /bin/bash
+CMD=${1:-"exit 0"}
+if [[ "$CMD" == "-d" ]];
+then
+	service sshd stop
+	/usr/sbin/sshd -D -d
+else
+	/bin/bash
 fi

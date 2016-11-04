@@ -27,6 +27,12 @@ And here is polygon feature sample:
 Note that in the above sample, the point fields are separated by a comma, where the polygon fields are separated by a pipe `|`.
 The delimited characters can be defined at execution time.
 
+__Update: Nov 4, 2016__
+
+- JDK 8 is a requirement.
+- Updated the map phase where, rather than sending to the reducer the whole geometry for each grid cell key, now the _clipped_ geometry for a cell is sent to the reducer phase.  This reduced the memory consumption and network bandwidth to transfer larger geometries.
+- Updated Docker content to Spark 1.6.2 and JDK 8 to accommodate the clip function in `org.geotools:gt-main:15.2`.
+
 ## Building the Project
 
 The build process uses [Maven](https://maven.apache.org/)
@@ -114,8 +120,7 @@ Unzip `data/points.tsv.zip` and `data/world.tsv.zip` into the `/tmp` folder.
 
 ```
 ${SPARK_HOME}/bin/spark-submit\
- --driver-java-options "-server -Xms1g -Xmx16g"\
- target/spark-pip-0.1.jar\
+ target/spark-pip-0.3.jar\
  local.properties
 ```
 
@@ -130,15 +135,13 @@ more /tmp/output/part-*
 For testing purposes, a Hadoop pseudo cluster can be created using [Docker](https://www.docker.com/) with HDFS, YARN and Spark.
 Check out [README.md](docker/README.md) in the `docker` folder.
 
-Let `${CODE}` be the folder where you cloned the `spark-pip` project.
-And let `${DATA}` be the folder where you unzipped the content of the `data` folder. 
+Let `${SPARK_PIP}` be the folder where you cloned the `spark-pip` project.
 
 ```
 docker run\
   -it\
   --rm=true\
-  --volume=${CODE}:/spark-pip\
-  --volume=${DATA}:/data\
+  --volume=${SPARK_PIP}:/spark-pip\
   -h boot2docker\
   -p 8088:8088\
   -p 9000:9000\
@@ -146,35 +149,33 @@ docker run\
   -p 50070:50070\
   -p 50075:50075\
   mraad/hdfs\
-  /etc/bootstrap.sh -bash
+  /etc/bootstrap.sh
 ```
 
 Put the supporting data in HDFS:
 
 ```
-cd $HADOOP_PREFIX
-bin/hdfs dfs -put /data/world.tsv world.tsv
-bin/hdfs dfs -put /data/points.tsv points.tsv
+unzip -p /spark-pip/data/world.tsv.zip | hdfs dfs -put - /world/world.tsv
+unzip -p /spark-pip/data/points.tsv.zip | hdfs dfs -put - /points/points.tsv
 ```
 
-Execute the following to perform PiP.
-This reads the application properties by default from the `application.properties` file in the current folder. 
+The following reads by default the application properties from the file `application.properties` in the current folder if no file argument is passed along. 
 
 ```
 cd /spark-pip
-${SPARK_HOME}/bin/spark-submit\
+hdfs dfs -rm -r -skipTrash /output
+time spark-submit\
  --master yarn-client\
- --driver-memory 1g\
- --executor-memory 2g\
+ --driver-memory 512m\
+ --num-executors 2\
  --executor-cores 1\
- --driver-java-options "-server -Xms1g -Xmx16g"\
- --jars target/libs/jts-1.13.jar\
- target/spark-pip-0.1.jar
+ --executor-memory 2g\
+ target/spark-pip-0.3.jar
 ```
 
-# View Data in HDFS
+## View Data in HDFS
 
-The output of the previous job resides in HDFS as CSV text files in `hdfs://boot2docker:9000/tmp/output/part-*`.
+The output of the previous job resides in HDFS as CSV text files in `hdfs://boot2docker:9000/output/part-*`.
 This form of output from a BigData job is what I term *GIS Data* and needs to be visualized.
 The HDFS configuration in the docker container has the [WebHDFS](https://hadoop.apache.org/docs/r1.0.4/webhdfs.html) REST API enabled.
 
@@ -185,7 +186,7 @@ The HDFS configuration in the docker container has the [WebHDFS](https://hadoop.
 </property>
 ```
 
-The `WebHDFSToolbox` ArcPy toolbox contains `WebHDFSTool` as a tool to open and read the content of CSV files in HDFS and
+The `PiPToolbox` ArcPy toolbox contains `Load Points` as a tool to open and read the content of CSV files in HDFS and
 converts each row into a feature in an in-memory feature class.
 
 ![](media/WebHDFSTool.png)

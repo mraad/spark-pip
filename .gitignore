@@ -1,7 +1,5 @@
-*.iml
-*.xml
-
 target/
 .idea/
-
-!pom.xml
+src/main/python/*.xml
+dependency-reduced-pom.xml
+*.iml

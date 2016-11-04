@@ -1,9 +1,9 @@
-import re
+import arcpy
 import json
+import re
 import urllib
 import urllib2
 
-import arcpy
 
 #
 # WebHDFS class inspired from https://github.com/drelu/webhdfs-py - Thanks
@@ -42,15 +42,15 @@ class WebHDFS(object):
 
 class Toolbox(object):
     def __init__(self):
-        self.label = "WebHDFS Toolbox"
-        self.alias = "WebHDFS Toolbox"
-        self.tools = [WebHDFSTool]
+        self.label = "Toolbox"
+        self.alias = "Toolbox"
+        self.tools = [Tool]
 
 
-class WebHDFSTool(object):
+class Tool(object):
     def __init__(self):
-        self.label = "WebHDFS Tool"
-        self.description = "WebHDFS Tool"
+        self.label = "Load Points"
+        self.description = "Load Points"
         self.canRunInBackground = False
 
     def getParameterInfo(self):
@@ -83,10 +83,6 @@ class WebHDFSTool(object):
     def execute(self, parameters, messages):
         name = parameters[1].value
 
-        # Use scratchGDB if need to be published as a GeoProcessing Service in ArcGIS Server.
-        # fc = os.path.join(arcpy.env.scratchGDB, name)
-        # ws = os.path.dirname(fc)
-
         ws = "in_memory"
         fc = ws + "/" + name
 
@@ -99,11 +95,18 @@ class WebHDFSTool(object):
         arcpy.management.AddField(fc, "ATTR2", "TEXT", field_length=4)
 
         with arcpy.da.InsertCursor(fc, ['SHAPE@XY', 'ATTR1', 'ATTR2']) as cursor:
-            webhdfs = WebHDFS("boot2docker", 50070, "root")
-            for path in webhdfs.list_status("/user/root/output", "part-*"):
-                for line in webhdfs.open(hdfs_path=path, buffer_size=1024 * 1024):
-                    lon, lat, attr1, attr2 = line.rstrip('\n').split(',')
-                    cursor.insertRow(((float(lon), float(lat)), attr1, attr2))
+            if True:
+                webhdfs = WebHDFS("boot2docker", 50070, "root")
+                for path in webhdfs.list_status("/output", "part-*"):
+                    for line in webhdfs.open(hdfs_path=path, buffer_size=1024 * 1024):
+                        tokens = line.rstrip('\n').split(',')
+                        if len(tokens) == 4:
+                            lon, lat, attr1, attr2 = tokens
+                            cursor.insertRow(((float(lon), float(lat)), attr1, attr2))
+            else:
+                with open("Z:/Share/parts.csv", "r") as f:
+                    for line in f:
+                        lon, lat, attr1, attr2 = line.rstrip('\n').split(',')
+                        cursor.insertRow(((float(lon), float(lat)), attr1, attr2))
 
         parameters[0].value = fc
-        return

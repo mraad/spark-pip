@@ -21,25 +21,36 @@ RUN ssh-keygen -q -N "" -t rsa -f /etc/ssh/ssh_host_rsa_key
 RUN ssh-keygen -q -N "" -t rsa -f /root/.ssh/id_rsa
 RUN cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 
-# java
-RUN curl -LO 'http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.rpm' -H 'Cookie: oraclelicense=accept-securebackup-cookie'
-RUN rpm -i jdk-7u79-linux-x64.rpm
-RUN rm jdk-7u79-linux-x64.rpm
+# java 1.7
+# RUN curl -LO 'http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.rpm' -H 'Cookie: oraclelicense=accept-securebackup-cookie'
+# RUN rpm -i jdk-7u79-linux-x64.rpm
+# RUN rm jdk-7u79-linux-x64.rpm
+
+# java 1.8
+RUN curl -LO 'http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-linux-x64.rpm' -H 'Cookie: oraclelicense=accept-securebackup-cookie'
+RUN rpm -i jdk-8u111-linux-x64.rpm
+RUN rm jdk-8u111-linux-x64.rpm
 
 ENV JAVA_HOME /usr/java/default
 ENV PATH $PATH:$JAVA_HOME/bin
+RUN rm /usr/bin/java && ln -s $JAVA_HOME/bin/java /usr/bin/java
 
 # download native support
 RUN mkdir -p /tmp/native
-RUN curl -Ls http://dl.bintray.com/sequenceiq/sequenceiq-bin/hadoop-native-64-2.7.0.tar | tar -x -C /tmp/native
+# RUN curl -Ls http://dl.bintray.com/sequenceiq/sequenceiq-bin/hadoop-native-64-2.7.0.tar | tar -x -C /tmp/native
+RUN curl -Ls https://github.com/sequenceiq/docker-hadoop-build/releases/download/v2.7.1/hadoop-native-64-2.7.1.tgz | tar -xz -C /tmp/native
 
 # hadoop
 RUN curl -s http://www.us.apache.org/dist/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz | tar -xz -C /usr/local
 RUN cd /usr/local && ln -s hadoop-2.7.1 hadoop
 
-# spark
-RUN curl -s http://d3kbcqa49mib13.cloudfront.net/spark-1.4.1-bin-hadoop2.6.tgz | tar -xz -C /usr/local
-RUN cd /usr/local && ln -s spark-1.4.1-bin-hadoop2.6 spark
+# spark 1.4.1
+# RUN curl -s http://d3kbcqa49mib13.cloudfront.net/spark-1.4.1-bin-hadoop2.6.tgz | tar -xz -C /usr/local
+# RUN cd /usr/local && ln -s spark-1.4.1-bin-hadoop2.6 spark
+
+# spark 1.6.2
+RUN curl -s http://d3kbcqa49mib13.cloudfront.net/spark-1.6.2-bin-hadoop2.6.tgz | tar -xz -C /usr/local
+RUN cd /usr/local && ln -s spark-1.6.2-bin-hadoop2.6 spark
 
 ENV SPARK_HOME /usr/local/spark
 
@@ -49,6 +60,7 @@ ENV HADOOP_HDFS_HOME /usr/local/hadoop
 ENV HADOOP_MAPRED_HOME /usr/local/hadoop
 ENV HADOOP_YARN_HOME /usr/local/hadoop
 ENV HADOOP_CONF_DIR /usr/local/hadoop/etc/hadoop
+ENV HADOOP_OPTS -Djava.library.path=/usr/local/hadoop/lib/native
 ENV YARN_CONF_DIR /usr/local/hadoop/etc/hadoop
 
 ENV PATH $PATH:$SPARK_HOME/bin:$HADOOP_PREFIX/bin
