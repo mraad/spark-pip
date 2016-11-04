@@ -74,10 +74,10 @@ The file can also include [Spark configuration properties](http://spark.apache.o
 The data can be massive and cannot fit in memory all at once to perform the PiP operations and to create
 a spatial index of all the polygons for quick lookup. So...you will have to segment the input data and operate on 
 each segment individually.  And since these segments share nothing, they can be processed in parallel.
-So, in the geospatial domain, segmentation takes the form of subdividing the area of interest into smaller rectangular areas.
-Rectangles are "nice" as you can quickly find out if a point is inside or outside of it,
-and polygonal shapes can be subdivided into coarse edge matching rectangles. It is that last fact that we will use to segment the input
-points and polygons, in such that that we can perform a massive PiP per segment.
+In the geospatial domain, segmentation takes the form of subdividing the area of interest into small rectangular areas.
+Rectangles are "nice", as you can quickly find out if a point is inside of it or outside of it,
+and polygonal shapes can be subdivided into coarse edge matching rectangles. It is that last feature that we will use to segment the input
+points and polygons, in such that that we can perform a massive PiP per segment/rectangle.
 
 Take for example the below points and polygons in an area of interest.
 
@@ -135,13 +135,13 @@ more /tmp/output/part-*
 For testing purposes, a Hadoop pseudo cluster can be created using [Docker](https://www.docker.com/) with HDFS, YARN and Spark.
 Check out [README.md](docker/README.md) in the `docker` folder.
 
-Let `${SPARK_PIP}` be the folder where you cloned the `spark-pip` project.
+In the _top level_ cloned folder, execute:
 
 ```
 docker run\
   -it\
   --rm=true\
-  --volume=${SPARK_PIP}:/spark-pip\
+  --volume=$(pwd):/spark-pip\
   -h boot2docker\
   -p 8088:8088\
   -p 9000:9000\

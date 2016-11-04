@@ -60,13 +60,18 @@ ENV HADOOP_HDFS_HOME /usr/local/hadoop
 ENV HADOOP_MAPRED_HOME /usr/local/hadoop
 ENV HADOOP_YARN_HOME /usr/local/hadoop
 ENV HADOOP_CONF_DIR /usr/local/hadoop/etc/hadoop
-ENV HADOOP_OPTS -Djava.library.path=/usr/local/hadoop/lib/native
 ENV YARN_CONF_DIR /usr/local/hadoop/etc/hadoop
+ENV LD_LIBRARY_PATH /usr/local/hadoop/lib/native
 
 ENV PATH $PATH:$SPARK_HOME/bin:$HADOOP_PREFIX/bin
 
 RUN sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/java/default\nexport HADOOP_PREFIX=/usr/local/hadoop\nexport HADOOP_HOME=/usr/local/hadoop\n:' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 RUN sed -i '/^export HADOOP_CONF_DIR/ s:.*:export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop/:' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+
+# fixing the libhadoop.so like a boss - review this
+RUN rm -rf /usr/local/hadoop/lib/native &&\
+ mv /tmp/native /usr/local/hadoop/lib &&\
+ echo -e "\nlog4j.logger.org.apache.hadoop.util.NativeCodeLoader=ERROR" >> /usr/local/hadoop/etc/hadoop/log4j.properties
 
 # pseudo distributed
 ADD core-site-template.xml /usr/local/hadoop/etc/hadoop/core-site-template.xml
@@ -77,10 +82,6 @@ RUN sed s/HOSTNAME/localhost/ /usr/local/hadoop/etc/hadoop/core-site-template.xm
 RUN sed s/HOSTNAME/localhost/ /usr/local/hadoop/etc/hadoop/hdfs-site-template.xml > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
 
 RUN /usr/local/hadoop/bin/hdfs namenode -format
-
-# fixing the libhadoop.so like a boss
-RUN rm -rf /usr/local/hadoop/lib/native
-RUN mv /tmp/native /usr/local/hadoop/lib
 
 ADD ssh_config /root/.ssh/config
 RUN chmod 600 /root/.ssh/config
