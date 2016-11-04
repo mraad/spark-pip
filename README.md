@@ -30,7 +30,7 @@ The delimited characters can be defined at execution time.
 __Update: Nov 4, 2016__
 
 - JDK 8 is a requirement.
-- Updated the map phase where, rather than sending to the reducer the whole geometry for each grid cell key, now the _clipped_ geometry for a cell is sent to the reducer phase.  This reduced memory consumption and network bandwidth in transferring smaller geometries.
+- Updated the map phase where, rather than sending to the reducer the whole geometry for each grid cell key, now the _clipped_ geometry for a cell is sent to the reduce phase.  This minimizes the memory consumption and the network traffic by transferring smaller geometries.
 - Updated Docker content to Spark 1.6.2 and JDK 8 to accommodate the clip function in `org.geotools:gt-main:15.2`.
 
 ## Building the Project
