@@ -73,7 +73,9 @@ object MainApp extends App with Logging {
         iter.flatMap(line => {
           try {
             val splits = line.split(polygonSep, -1)
-            val geom = wktReader.read(splits(polygonWKT))
+            var geomString=splits(polygonWKT)
+            geomString=geomString.replaceAll("\"", "")
+            val geom = wktReader.read(geomString)
             if (geom.getEnvelopeInternal.intersects(envp))
               Some(FeaturePolygon(geom, polygonIdx.map(splits(_))))
             else
